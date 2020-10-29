@@ -329,15 +329,19 @@ class MeasurementManager(object):
                 if anno is None:
                     anno = {}
                 
-                bw = BigBed(rec.get("url"))
-                metadata = bw.get_autosql()
+                metadata = rec.get("metadata")
+                if not metadata or len(metadata) == 0:
+                    if rec.get("file_type").lower() == "gwas":
+                        bw = BigBed(rec.get("url"))
+                        metadata = bw.get_autosql()
 
-                if metadata and len(metadata) > 3:
-                    metadata = metadata[3:]
+                    if metadata and len(metadata) > 3:
+                        metadata = metadata[3:]
+                    else:
+                        metadata = []
                 else:
                     metadata = []
-
-
+                    
                 anno["_filetype"] = rec.get("file_type")
                 tempFileM = FileMeasurement(rec.get("file_type"), rec.get("id"), rec.get("name"), 
                             rec.get("url"), genome=tgenome, annotation=anno,
@@ -446,6 +450,9 @@ class MeasurementManager(object):
         records = self.emd_map.init()
         self.import_records(records, fileHandler = fileHandler)
 
+    def using_emd(self):
+        return self.emd_endpoint is not None
+        
     def import_emd(self, url, fileHandler=None, listen=True):
         """Import measurements from an epiviz-md metadata service api.
 

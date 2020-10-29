@@ -13,6 +13,8 @@ from dask.distributed import Client
 # import logging
 import time
 import traceback
+from subprocess import check_output
+import signal
 
 app = Sanic(__name__)
 CORS(app)
@@ -46,6 +48,10 @@ def setup_app(measurementsManager, dask_scheduler = None):
     app.epivizMeasurementsManager = measurementsManager
     app.epivizFileHandler = None
     app.dask_scheduler = dask_scheduler
+    app.psname = os.getenv("EPIVIZ_FS_PSNAME")
+    if app.psname is not None:
+        logging.info(f"Got a process name {app.psname}")
+
     logging.info("Initialized Setup App")
     # traceback.print_stack()
     return app
@@ -258,3 +264,47 @@ async def process_request(request, datasource):
         res["data"]["SD"] = (data["sumSquares"] + (data["count"] * (mean ** 2)) - 2 * mean * data["sum"])/data["count"]
 
     return response.json(res, status=200)
+
+# this is not pretty, but oh well....
+@app.route("/updateCollections", methods=["POST"])
+async def process_request(request):
+    isUsingEmd = request.app.epivizMeasurementsManager.using_emd()
+    psname = request.app.psname
+
+    nothingResponse = response.json({
+                "requestId": -1,
+                "type": "response",
+                "error": None,
+                "version": 5,
+                "data": {}
+            }, status = 405)
+
+    def errorResponse(e):
+        return response.json({
+                "requestId": -1,
+                "type": "response",
+                "error": str(e),
+                "version": 5,
+                "data": {}
+            }, status = 500) 
+
+    okResponse = response.json({
+                "requestId": -1,
+                "type": "response",
+                "error": None,
+                "version": 5,
+                "data": {}
+            }, status = 200)
+
+    if isUsingEmd and psname is not None:
+        try:
+            pid = check_output(["pidof", psname])
+            os.kill(int(pid), signal.SIGHUP)
+            return okResponse
+
+        except Exception as e:
+            logging.debug(f"Tried to sighup to re-read measurements with psname {psname}: {e}")
+            return errorResponse(e)
+
+    else:
+        return nothingResponse
