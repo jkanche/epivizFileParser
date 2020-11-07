@@ -330,17 +330,14 @@ class MeasurementManager(object):
                     anno = {}
                 
                 metadata = rec.get("metadata")
-                if not metadata or len(metadata) == 0:
-                    if rec.get("file_type").lower() == "gwas":
-                        bw = BigBed(rec.get("url"))
-                        metadata = bw.get_autosql()
+                if (not metadata or len(metadata) == 0) and rec.get("file_type").lower() == "gwas":
+                    bw = BigBed(rec.get("url"))
+                    metadata = bw.get_autosql()
 
                     if metadata and len(metadata) > 3:
                         metadata = metadata[3:]
                     else:
                         metadata = []
-                else:
-                    metadata = []
                     
                 anno["_filetype"] = rec.get("file_type")
                 tempFileM = FileMeasurement(rec.get("file_type"), rec.get("id"), rec.get("name"), 
