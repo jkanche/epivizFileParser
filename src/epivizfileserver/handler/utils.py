@@ -1,4 +1,4 @@
-from ..parser import BigBed, BigWig, SamFile, TbxFile, TranscriptTbxFile, BamFile, GtfFile, GtfParsedFile, GWASBigBed, TileDB, InteractionBigBed
+from ..parser import BigBed, BigWig, SamFile, TbxFile, TranscriptTbxFile, BamFile, GtfFile, GtfParsedFile, GWASBigBedPval, GWASBigBedPIP, TileDB, InteractionBigBed
 
 def create_parser_object(format, source):
     """
@@ -27,7 +27,8 @@ def create_parser_object(format, source):
         "tabix": TbxFile,
         "gtf": GtfFile,
         "gtfparsed": GtfParsedFile,
-        "gwas": GWASBigBed,
+        "gwas": GWASBigBedPval,
+        "gwas_pip": GWASBigBedPIP,
         "tiledb": TileDB,
         "interaction_bigbed": InteractionBigBed,
         "interaction_bigBed": InteractionBigBed,

@@ -7,7 +7,8 @@ from .TbxFile import TbxFile
 from .TranscriptTbxFile import TranscriptTbxFile
 from .GtfFile import GtfFile
 from .GtfParsedFile import GtfParsedFile
-from .GWASBigBed import GWASBigBed
+from .GWASBigBedPval import GWASBigBedPval
+from .GWASBigBedPIP import GWASBigBedPIP
 from .InteractionBigBed import InteractionBigBed
 from .TileDB import TileDB
 from .HDF5File import HDF5File

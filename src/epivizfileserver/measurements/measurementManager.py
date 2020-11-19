@@ -323,14 +323,14 @@ class MeasurementManager(object):
                     measurements.append(tempFileM)
                     self.measurements.append(tempFileM)
                            
-            elif rec.get("file_type").lower() in ["gwas", "bigbed"]:
+            elif rec.get("file_type").lower() in ["gwas", "bigbed", "gwas_pip"]:
                 anno = rec.get("annotation")
 
                 if anno is None:
                     anno = {}
                 
                 metadata = rec.get("metadata")
-                if (not metadata or len(metadata) == 0) and rec.get("file_type").lower() == "gwas":
+                if (not metadata or len(metadata) == 0) and rec.get("file_type").lower() in ["gwas", "gwas_pip"]:
                     bw = BigBed(rec.get("url"))
                     metadata = bw.get_autosql()
 

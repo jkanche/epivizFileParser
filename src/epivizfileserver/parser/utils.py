@@ -17,7 +17,8 @@ def create_parser_object(format, source, columns=None):
     from .BamFile import BamFile
     from .TbxFile import TbxFile
     from .GtfFile import GtfFile
-    from .GWASBigBed import GWASBigBed
+    from .GWASBigBedPval import GWASBigBedPval
+    from .GWASBigBedPIP import GWASBigBedPIP
     from .InteractionBigBed import InteractionBigBed
     from .TileDB import TileDB
     from .TranscriptTbxFile import TranscriptTbxFile
@@ -36,7 +37,8 @@ def create_parser_object(format, source, columns=None):
         "tbx": TbxFile,
         "tabix": TbxFile,
         "gtf": GtfFile,
-        "gwas": GWASBigBed,
+        "gwas": GWASBigBedPval,
+        "gwas_pip": GWASBigBedPIP,
         "tiledb": TileDB,
         "interaction_bigbed": InteractionBigBed,
         "transcript": TranscriptTbxFile
