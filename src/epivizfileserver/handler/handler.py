@@ -174,6 +174,7 @@ class FileHandlerProcess(object):
         except Exception as e:
             #  a way of resilience
             logging.debug("Handler: Exception & resubmit %s\n%s\t%s" %(str(e), fileName,  "handleFile"))
+            del self.records[fileName]
             return self.handleFile(fileName, fileType, chr, start, end, bins=bin)
 
     @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlesearch")
