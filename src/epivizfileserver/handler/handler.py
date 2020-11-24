@@ -136,12 +136,20 @@ class FileHandlerProcess(object):
                 return True
         return False
 
+    async def get_dask_actor(self, fileClass, fileName):
+        try:
+            fileFuture = self.client.submit(fileClass, fileName, actor=True)
+            fileObj = await self.client.gather(fileFuture)
+            return fileObj
+        except Exception as e:
+            logging.debug("Handler: get_dask_actor Exception & resubmit %s\n%s\t%s" %(str(e), fileName,  "handleFile"))
+            return await self.get_dask_actor(fileClass, fileName)
+
     async def get_file_object(self, fileName, fileType):
         if self.records.get(fileName) == None:
             fileClass = create_parser_object(fileType, fileName)
             await self.client.wait_for_workers(1)
-            fileFuture = self.client.submit(fileClass, fileName, actor=True)
-            fileObj = await self.client.gather(fileFuture)
+            fileObj = await self.get_dask_actor(fileClass, fileName)
             self.setRecord(fileName, fileObj, fileType)
         fileObj = await self.getRecord(fileName)
         
@@ -174,7 +182,8 @@ class FileHandlerProcess(object):
         except Exception as e:
             #  a way of resilience
             logging.debug("Handler: Exception & resubmit %s\n%s\t%s" %(str(e), fileName,  "handleFile"))
-            del self.records[fileName]
+            if fileName in self.records:
+                del self.records[fileName]
             return await self.handleFile(fileName, fileType, chr, start, end, bins=bin)
 
     @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlesearch")
