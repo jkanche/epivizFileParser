@@ -140,7 +140,7 @@ class Measurement(object):
         columns.append(self.mid)
         return columns
 
-    def bin_rows(self, data, chr, start, end, bins = 2000):
+    def bin_rows_legacy(self, data, chr, start, end, bins = 2000):
         """Bin genome by bin length and summarize the bin
 
         Args:
@@ -181,6 +181,21 @@ class Measurement(object):
         bins_df["end"] = bins_df.index.right
 
         return pd.DataFrame(bins_df)
+
+    def bin_rows(self, data, chr, start, end, columns=None, metadata=None, bins = 400):
+        if len(data) == 0 or len(data) <= bins: 
+            return data, None
+
+        row_cut = pd.cut(data.index, bins=bins)
+        rows = {}
+
+        groups = data.groupby(row_cut)
+        rows["start"] = groups["start"].first()
+        rows["end"] = groups["end"].last()
+        for col in columns:
+            rows[col] = groups[col].mean()
+        
+        return pd.DataFrame.from_dict(rows), None
 
     def query(self, obj, query_params):
         """Query from db/source
@@ -376,8 +391,10 @@ class FileMeasurement(Measurement):
                 result = result.fillna(0)
 
             if bin and not self.isGenes and self.mtype not in ["tiledb", "interaction_bigbed"]: 
-                result, err = await self.fileHandler.binFileData(self.source, self.mtype, result, chr, start, end, 
-                                bins, columns=self.get_columns(), metadata=self.metadata)
+                # result, err = await self.fileHandler.binFileData(self.source, self.mtype, result, chr, start, end, 
+                #                 bins, columns=self.get_columns(), metadata=self.metadata)
+                result, err = self.bin_rows(result, chr, start, end, bins=bins, 
+                    columns=self.get_columns(), metadata=self.metadata)
  
             return result, str(err)
         except Exception as e:
