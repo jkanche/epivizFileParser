@@ -129,13 +129,27 @@ class FileHandlerProcess(object):
         record["pickling"] = False
         record["fileObj"] = None
     
+    async def check_who_has_obj(self, obj):
+        workerList = await self.client.has_what()
+        for worker in workerList:
+            if obj.key in workerList[worker]:
+                return True
+        return False
+
     async def get_file_object(self, fileName, fileType):
         if self.records.get(fileName) == None:
             fileClass = create_parser_object(fileType, fileName)
+            await self.client.wait_for_workers(1)
             fileFuture = self.client.submit(fileClass, fileName, actor=True)
             fileObj = await self.client.gather(fileFuture)
             self.setRecord(fileName, fileObj, fileType)
         fileObj = await self.getRecord(fileName)
+        
+        objFlag = await self.check_who_has_obj(fileObj)
+        if not objFlag:
+            logging.debug("Handler: Lost FileObj %s\t%s" %(fileName,  "handleFile"))
+            del self.records[fileName]
+            return await self.get_file_object(fileName, fileType)   
         return fileObj
 
     @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlefile")
@@ -151,15 +165,16 @@ class FileHandlerProcess(object):
             points: number of base-pairse to group per bin
         """
         logging.debug("Handler: %s\t%s" %(fileName,  "handleFile"))
-        fileObj = await self.get_file_object(fileName, fileType)
+        
         try:
-            data, err = await fileObj.getRange(chr, start, end, bins)
-        except Exception as e:
-            # assuming worker is no longer available, retry
-            del self.records[fileName]
             fileObj = await self.get_file_object(fileName, fileType)
+            await self.client.wait_for_workers(1)
             data, err = await fileObj.getRange(chr, start, end, bins)
-        return data, err
+            return data, err
+        except Exception as e:
+            #  a way of resilience
+            logging.debug("Handler: Exception & resubmit %s\n%s\t%s" %(str(e), fileName,  "handleFile"))
+            return self.handleFile(fileName, fileType, chr, start, end, bins=bin)
 
     @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlesearch")
     async def handleSearch(self, fileName, fileType, query, maxResults):
