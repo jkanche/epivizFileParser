@@ -99,7 +99,7 @@ async def setup_after_connection(app, loop):
     #         threads_per_worker=1)
     logging.info("setting up dask client with scheduler {}".format(app.dask_scheduler))
     if app.dask_scheduler is None:
-        app.client = await Client(asynchronous=True, nanny=False, loop=ioloop)
+        app.client = await Client(asynchronous=True, nanny=False)
     else:
         app.client = await Client(address = app.dask_scheduler, asynchronous=True)
         
