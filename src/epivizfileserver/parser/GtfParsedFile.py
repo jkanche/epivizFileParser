@@ -59,7 +59,8 @@ class GtfParsedFile(object):
                         "chr": row["chr"],
                         "start": int(row["start"]),
                         "end": int(row["end"]),
-                        "gene": row["gene"]
+                        "gene": row["gene"],
+                        "strand": row["strand"]
                     }
                     result.append(rec)
                     counter += 1
