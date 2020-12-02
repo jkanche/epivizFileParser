@@ -424,7 +424,7 @@ class MeasurementManager(object):
 
             collection_id = rec['collection_id']
             del rec['collection_id']
-            collection_name = collections[collection_id]
+            collection_name = rec['collection_name']
 
             current_annotation = rec['annotation']
             if current_annotation is None:
