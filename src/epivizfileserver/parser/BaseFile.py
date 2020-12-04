@@ -10,6 +10,7 @@ import numpy as np
 from urllib.parse import urlparse
 import http
 import requests
+import ssl
 
 class BaseFile(object):
     """
@@ -84,7 +85,7 @@ class BaseFile(object):
         if self.fuparse.scheme in ["ftp", "http"]:
             self.conn = http.client.HTTPConnection(self.fuparse.netloc)
         elif self.fuparse.scheme in ["ftps", "https"]:
-            self.conn = http.client.HTTPSConnection(self.fuparse.netloc)
+            self.conn = http.client.HTTPSConnection(self.fuparse.netloc, context=ssl._create_unverified_context())
 
     def parse_url(self, furl=None):
         self.conn = requests.Session()
