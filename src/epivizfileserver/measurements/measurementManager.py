@@ -395,7 +395,7 @@ class MeasurementManager(object):
         if url is None:
             raise Exception("Error reading measurements from emd endpoint: missing url")
 
-        req_url = url + "/collections/"
+        req_url = url + "/collections/all"
         r = requests.get(req_url)
         if r.status_code != 200:
             raise Exception("Error getting collections from emd {}".format(req_url))
@@ -407,7 +407,7 @@ class MeasurementManager(object):
             collections[rec['id']] = rec['collection_id']
 
 
-        req_url = url + "/ms/"
+        req_url = url + "/ms/all"
         r = requests.get(req_url)
         if r.status_code != 200:
             raise Exception("Error importing measurements from collection {} with url {}: {}".format(collection_record['collection_id'], req_url, r.text))
