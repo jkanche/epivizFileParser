@@ -404,7 +404,7 @@ class MeasurementManager(object):
         collections = {}
     
         for rec in collection_records:
-            collections[rec['id']] = rec['collection_id']
+            collections[rec['id']] = (rec['collection_id'], rec["name"])
 
 
         req_url = url + "/ms/all"
@@ -424,7 +424,7 @@ class MeasurementManager(object):
 
             collection_id = rec['collection_id']
             del rec['collection_id']
-            collection_name = rec['collection_name']
+            collection_name = collections[rec['collection_id']][1]
 
             current_annotation = rec['annotation']
             if current_annotation is None:
