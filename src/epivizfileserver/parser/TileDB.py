@@ -1,6 +1,8 @@
 import tiledb
 import numpy as np
 import pandas as pd
+import ujson
+from .TileDBTbxFile import TileDBTbxFile
 
 class TileDB(object):
     """
@@ -22,6 +24,8 @@ class TileDB(object):
             it must have as many lines as rows in the tiledb file. There should be no index column in
             this file (i.e., it is read with pandas.read_csv(..., sep='\t', index_col=False)). It must
             have columns 'chr', 'start' and 'end'.
+            We index the rows file using Tabix so we are not loading the entire file into memory.
+            This file contains columns as annotated in .json file
 
             'cols' file - this is a tab-separated value file describing the columns of the tiledb array.
             It must have as many files as columns in the tiledb file. Column names for the tiledb array
@@ -31,8 +35,24 @@ class TileDB(object):
     def __init__(self, path):
         self.path = path
         self.count = tiledb.open(path + "/data.tiledb", 'r')
-        self.rows = pd.read_csv(path + "/rows", sep="\t", index_col=False)
-        self.cols = pd.read_csv(path + "/cols", sep="\t", index_col=0)
+
+        # get columns of the rows file
+        row_rec = ujson.load(open(path + "/rows.tsv.bgz.json"))
+        metadata = [m["name"] for m in row_rec["covariates"]]
+        fmeta = []
+
+        # renaming columns
+        for m in metadata:
+            if m.lower() == "id":
+                m = "gene"
+
+            if m.lower() == "seqnames":
+                m = "chr"
+            fmeta.append(m)
+
+        # metadata = [m for m in metadata if m not in ['seqnames', 'start', 'end', 'chr']]
+        self.rows = TileDBTbxFile(path + "/rows.tsv.bgz", columns=fmeta)
+        self.cols = pd.read_csv(path + "/cols.tsv", sep="\t", index_col=0)
         self.columns = self.cols.index.values
 
     def getRange(self, chr, start = None, end = None, bins=2000, zoomlvl=-1, metric="AVG", respType = "DataFrame", treedisk=None):
@@ -53,13 +73,15 @@ class TileDB(object):
         result = pd.DataFrame(columns=self.columns)
 
         try:
-            result_rows = self.rows[(self.rows["chr"] == chr) & (self.rows["start"] <= end) & (self.rows["end"] >= start)]
-            indices = result_rows.index.values            
-            matrix = self.count[indices[0]:indices[-1]+1,]['vals'] 
-
-            result_matrix = pd.DataFrame(matrix, index=indices, columns=self.columns)           
-            result_merge = pd.concat([result_rows, result_matrix], axis=1)
-
+            # result_rows = self.rows[(self.rows["chr"] == chr) & (self.rows["start"] <= end) & (self.rows["end"] >= start)]
+            result_rows, err = self.rows.getRange('"' + chr + '"', start, end)
+            result_rows = result_rows.applymap(lambda x: x.replace('"', ''))
+            
+            indices = result_rows["X__rowindex"].values.astype(int)
+            matrix = self.count[min(indices):max(indices)+1,]['vals']
+            
+            result_matrix = pd.DataFrame(matrix, index=range(min(indices), max(indices)+1), columns=self.columns)
+            result_merge = pd.concat([result_rows, result_matrix], axis=1, join="inner")
             return result_merge, None
         except Exception as e:
             print(str(e))

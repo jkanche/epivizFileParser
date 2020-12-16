@@ -302,12 +302,16 @@ class MeasurementManager(object):
 
             if rec.get("file_type") == "tiledb":
                 # its expression dataset 
-                samples = pd.read_csv(rec.get("url") + "/cols", sep="\t", index_col=0)
+                samples = pd.read_csv(rec.get("url") + "/cols.tsv", sep="\t", index_col=0)
                 sample_names = samples.index.values
 
-                rows = pd.read_csv(rec.get("url") + "/rows", sep="\t", index_col=False, nrows=10)
-                metadata = rows.columns.values
-                metadata = [ m for m in metadata if m not in ['chr', 'start', 'end'] ]
+                # rows = pd.read_csv(rec.get("url") + "/rows", sep="\t", index_col=False, nrows=10)
+                # metadata = rows.columns.values
+                # metadata = [ m for m in metadata if m not in ['chr', 'start', 'end'] ]
+                row_rec = ujson.load(open(rec.get("url") + "rows.tsv.bgz.json"))
+                metadata = [m["name"] for m in row_rec["covariates"]]
+                metadata = [m if m.lower() != "id" else "gene" for m in metadata]
+                metadata = [m for m in metadata if m not in ['seqnames', 'start', 'end', 'chr']]
 
                 for samp, (index, row) in zip(sample_names, samples.iterrows()):
                     anno = row.to_dict()
