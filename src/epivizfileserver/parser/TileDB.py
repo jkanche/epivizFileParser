@@ -53,7 +53,7 @@ class TileDB(object):
         # metadata = [m for m in metadata if m not in ['seqnames', 'start', 'end', 'chr']]
         self.rows = TileDBTbxFile(path + "/rows.tsv.bgz", columns=fmeta)
         self.cols = pd.read_csv(path + "/cols.tsv", sep="\t", index_col=0)
-        self.columns = self.cols.index.values
+        self.columns = self.cols["epiviz_ids"].values # self.cols.index.values
 
     def getRange(self, chr, start = None, end = None, bins=2000, zoomlvl=-1, metric="AVG", respType = "DataFrame", treedisk=None):
         """Get data for a given genomic location
