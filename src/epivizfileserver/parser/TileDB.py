@@ -78,6 +78,7 @@ class TileDB(object):
             result_rows = result_rows.applymap(lambda x: x.replace('"', ''))
             
             indices = result_rows["X__rowindex"].values.astype(int)
+            result_rows.index = indices
             matrix = self.count[min(indices):max(indices)+1,]['vals']
             
             result_matrix = pd.DataFrame(matrix, index=range(min(indices), max(indices)+1), columns=self.columns)
