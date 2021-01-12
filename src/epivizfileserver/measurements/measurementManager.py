@@ -510,7 +510,7 @@ class MeasurementManager(object):
             self.measurements.append(tempGenomeM)
         elif type == "efs-tsv":
             gurl = url
-            tempGenomeM = FileMeasurement("gtfparsed", genome, genome, 
+            tempGenomeM = FileMeasurement("gtfparsed", genome + ".genes", genome + ".genes", 
                             gurl, genome=genome, annotation={"group": "genome"},
                             metadata=["geneid", "exons_start", "exons_end", "gene"], minValue=0, maxValue=5,
                             isGenes=isGene, fileHandler=fileHandler, columns=["chr", "start", "end", "width", "strand", "geneid", "exon_starts", "exon_ends", "gene"]
@@ -519,6 +519,27 @@ class MeasurementManager(object):
             gtf_file = GtfParsedFile(gurl)
             self.genomes[genome] = gtf_file
             self.measurements.append(tempGenomeM)
+        elif type == "efs-dir":
+            genome_url = url + "/genes.tsv.gz"
+            print("Genome " + genome_url)
+            tempGenomeM = FileMeasurement("gtfparsed",  genome + ".genes", genome + ".genes", 
+                            genome_url, genome=genome, annotation={"group": "genome", "collection": "genome"},
+                            metadata=["geneid", "exons_start", "exons_end", "gene"], minValue=0, maxValue=5,
+                            isGenes=isGene, fileHandler=fileHandler, columns=["chr", "start", "end", "width", "strand", "geneid", "exon_starts", "exon_ends", "gene"]
+                        )
+
+            gtf_file = GtfParsedFile(genome_url)
+            self.genomes[genome] = gtf_file
+            self.measurements.append(tempGenomeM)
+
+            tx_url = url + "/transcripts.tsv.bgz"
+            print("Transcript" + tx_url)
+            tempTxM = FileMeasurement("transcript", genome + ".transcripts", genome + ".transcripts",
+                            tx_url, genome=genome, annotation={"group": "transcript", "collection": "transcript"},
+                            metadata=[], minValue=0, maxValue=5,
+                            isGenes=isGene, fileHandler=fileHandler
+                        )
+            self.measurements.append(tempTxM)
         elif type == "gtf":
             gurl = url
             tempGenomeM = FileMeasurement("gtf", genome, genome, 
