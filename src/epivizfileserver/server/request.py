@@ -56,7 +56,7 @@ class EpivizRequest(object):
         """
         raise Exception("NotImplementedException")
 
-    def get_data(self, mMgr):
+    def get_data(self, mMgr, handler=None):
         """
         Get Data for this request type
 
@@ -79,7 +79,7 @@ class SeqInfoRequest(EpivizRequest):
     def validate_params(self, request):
         return None
 
-    async def get_data(self, mMgr):
+    async def get_data(self, mMgr, handler=None):
 
         try:
             seqs = {}
@@ -102,7 +102,7 @@ class MeasurementRequest(EpivizRequest):
     def validate_params(self, request):
         return None
 
-    async def get_data(self, mMgr):
+    async def get_data(self, mMgr, handler=None):
 
         result = {
             "annotation": [],
@@ -124,7 +124,7 @@ class MeasurementRequest(EpivizRequest):
             logging.debug("Formatting measurements to send response")
             for rec in measurements:
                 result.get("annotation").append(rec.annotation)
-                result.get("datasourceGroup").append(rec.mid)
+                result.get("datasourceGroup").append(rec.source)
                 result.get("datasourceId").append(rec.source)
                 result.get("defaultChartType").append("track")
                 result.get("id").append(rec.mid)
@@ -182,7 +182,7 @@ class DataRequest(EpivizRequest):
                     raise Exception("missing params in request", key)
         return params
 
-    async def get_data(self, mMgr):
+    async def get_data(self, mMgr, handler=None):
         #measurements = mMgr.get_measurements()
         genomes = mMgr.get_genomes()
         result = None
@@ -209,6 +209,10 @@ class DataRequest(EpivizRequest):
                 if "getRows" in self.request.get("action"):
                     ms_id = self.params.get("datasource")
                     rec = mMgr.get_measurement(ms_id)
+                    
+                    if handler:
+                        rec.fileHandler = handler
+
                     if rec is not None:
                         logging.debug("Request processing: %s\t%s" % (self.request.get("requestId"), "getRows"))
                         start = time.time()
@@ -232,6 +236,9 @@ class DataRequest(EpivizRequest):
                     ms_ids = self.params.get("measurement")
                     rec = mMgr.get_measurement(ms_ids[0]) if len(ms_ids) == 1 else None
 
+                    if handler:
+                        rec.fileHandler = handler
+                        
                     if rec is not None:
                         # legacy support for browsers that do not send this param
                         if "bins" not in self.request.keys():
@@ -254,14 +261,18 @@ class DataRequest(EpivizRequest):
                         mMgr.stats["getValues"][self.params.get("measurement")[0]]["count"] += 1
                         mMgr.stats["getValues"][self.params.get("measurement")[0]]["sumSquares"] += ((end-start) ** 2)
             
+            if rec is None:
+                return None, f"Cannot find measurement, {self.params.get('datasource')}: {self.params.get('measurement')}"
+
             # result = result.to_json(orient='records')
             if result is not None :
                 logging.debug("Request processing: %s\t%s" % (self.request.get("requestId"), "format_result"))
                 result = utils.format_result(result, self.params)
-            if self.request.get("action") == "getRows":
-                return result["rows"], err
-            else:
-                return result, err
+                if self.request.get("action") == "getRows":
+                    return result["rows"], err
+                else:
+                    return result, err
+
         except Exception as e:
             # print("failed in req get_data", str(e))
             logging.error("Data Request: %s" % (self.params), exc_info=True)
@@ -287,7 +298,7 @@ class SearchRequest(EpivizRequest):
 
         return params
 
-    async def get_data(self, mMgr):
+    async def get_data(self, mMgr, handler=None):
         measurements = mMgr.get_measurements()
         genomes = mMgr.get_genomes()
         result = []

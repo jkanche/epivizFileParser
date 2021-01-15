@@ -159,7 +159,7 @@ async def process_request(request):
     logging.debug("Request received: %s" %(request.args))
     start = time.time()
     epiviz_request = create_request(param_action, request.args)
-    result, error = await epiviz_request.get_data(request.app.epivizMeasurementsManager)
+    result, error = await epiviz_request.get_data(request.app.epivizMeasurementsManager, handler=request.app.epivizFileHandler)
     logging.debug("Request total time: %s" %(time.time() - start))
     logging.debug("Request processed: %s" %(param_id))
 
@@ -172,7 +172,7 @@ async def process_request(request):
                     status=200)
 
 @app.route("/addData", methods=["POST", "OPTIONS", "GET"])
-async def process_request(request):
+async def add_source(request):
     """
     API Endpoint to add new datasets to an instance
 
@@ -195,6 +195,8 @@ async def process_request(request):
     elif type is "hub":
         request.app.epivizMeasurementsManager.import_trackhub(file, request.app.epivizFileHandler)
 
+    param_id = request.args.get("requestId")
+
     return response.json({"requestId": int(param_id),
                             "type": "response",
                             "error": None,
@@ -205,7 +207,7 @@ async def process_request(request):
 
 
 @app.route("/status", methods=["GET"])
-async def process_request(request):
+async def status_request(request):
     # response = {
     #     "requestId": -1, 
     #     "type": "response",
@@ -229,7 +231,7 @@ async def process_request(request):
     }, status=200)
 
 @app.route("/status/<datasource>", methods=["GET"])
-async def process_request(request, datasource):
+async def ds_status_request(request, datasource):
     epiviz_request = StatusRequest(request, datasource)
     result, error = await epiviz_request.get_status(request.app.epivizMeasurementsManager)
 
@@ -267,7 +269,7 @@ async def process_request(request, datasource):
 
 # this is not pretty, but oh well....
 @app.route("/updateCollections", methods=["POST"])
-async def process_request(request):
+async def update_col(request):
     isUsingEmd = request.app.epivizMeasurementsManager.using_emd()
     psname = request.app.psname
 
