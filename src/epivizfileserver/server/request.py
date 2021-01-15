@@ -187,6 +187,7 @@ class DataRequest(EpivizRequest):
         genomes = mMgr.get_genomes()
         result = None
         err = None
+        rec = None
         
         logging.debug("Request GetData: %s\t%s" % (self.request.get("requestId"), "getRows"))
 
@@ -238,7 +239,7 @@ class DataRequest(EpivizRequest):
 
                     if handler:
                         rec.fileHandler = handler
-                        
+
                     if rec is not None:
                         # legacy support for browsers that do not send this param
                         if "bins" not in self.request.keys():
