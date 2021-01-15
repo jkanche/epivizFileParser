@@ -300,34 +300,34 @@ class MeasurementManager(object):
             if tgenome is None:
                 tgenome = genome
 
-            # if rec.get("file_type") == "tiledb":
-            #     # its expression dataset 
-            #     # samples = pd.read_csv(rec.get("url") + "/cols.tsv", sep="\t", index_col=0)
-            #     # sample_names = samples.index.values
+            if rec.get("file_type").lower() == "tiledb-dir":
+                # its expression dataset 
+                samples = pd.read_csv(rec.get("url") + "/cols.tsv", sep="\t", index_col=0)
+                sample_names = samples["epiviz_ids"].values
 
-            #     # rows = pd.read_csv(rec.get("url") + "/rows", sep="\t", index_col=False, nrows=10)
-            #     # metadata = rows.columns.values
-            #     # metadata = [ m for m in metadata if m not in ['chr', 'start', 'end'] ]
-            #     # row_rec = ujson.load(open(rec.get("url") + "rows.tsv.bgz.json"))
-            #     # metadata = [m["name"] for m in row_rec["covariates"]]
-            #     # metadata = [m if m.lower() != "id" else "gene" for m in metadata]
-            #     # metadata = [m for m in metadata if m not in ['seqnames', 'start', 'end', 'chr']]
+                # rows = pd.read_csv(rec.get("url") + "/rows", sep="\t", index_col=False, nrows=10)
+                # metadata = rows.columns.values
+                # metadata = [ m for m in metadata if m not in ['chr', 'start', 'end'] ]
+                row_rec = ujson.load(open(rec.get("url") + "/rows.tsv.bgz.json"))
+                metadata = [m["name"] for m in row_rec["covariates"]]
+                metadata = [m if m.lower() != "id" else "gene" for m in metadata]
+                metadata = [m for m in metadata if m not in ['seqnames', 'start', 'end', 'chr']]
+                print("metadata ", metadata)
 
-            #     # for samp, (index, row) in zip(sample_names, samples.iterrows()):
-            #     #     anno = row.to_dict()
-            #     #     anno["_filetype"] = rec.get("file_type")
-            #     #     for key in rec.get("annotation").keys():
-            #     #         anno[key] = rec.get("annotation").get(key)
-            #     tempFileM = FileMeasurement(rec.get("file_type"), samp, 
-            #             samp + "_" + rec.get("name"), 
-            #             rec.get("url"), genome=tgenome, annotation=anno,
-            #             metadata=metadata, minValue=0, maxValue=20,
-            #             isGenes=isGene, fileHandler=fileHandler
-            #         )
-            #     measurements.append(tempFileM)
-            #     self.measurements.append(tempFileM)
-                           
-            if rec.get("file_type").lower() in ["gwas", "bigbed", "gwas_pip"]:
+                for samp, (index, row) in zip(sample_names, samples.iterrows()):
+                    anno = row.to_dict()
+                    anno["_filetype"] = rec.get("file_type")
+                    for key in rec.get("annotation").keys():
+                        anno[key] = rec.get("annotation").get(key)
+                        tempFileM = FileMeasurement("tiledb", samp, 
+                            samp + "_" + rec.get("name"), 
+                            rec.get("url"), genome=tgenome, annotation=anno,
+                            metadata=metadata, minValue=0, maxValue=20,
+                            isGenes=isGene, fileHandler=fileHandler
+                        )
+                        measurements.append(tempFileM)
+                        self.measurements.append(tempFileM)
+            elif rec.get("file_type").lower() in ["gwas", "bigbed", "gwas_pip"]:
                 anno = rec.get("annotation")
 
                 if anno is None:
