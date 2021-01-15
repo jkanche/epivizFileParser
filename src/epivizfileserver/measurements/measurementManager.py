@@ -269,13 +269,15 @@ class MeasurementManager(object):
         records = ujson.loads(json_string)
         self.import_records(records, fileHandler=fileHandler, genome=genome)
 
-    def import_records(self, records, fileHandler=None, genome=None):
+    def import_records(self, records, fileHandler=None, genome=None, skip=False):
         """Import measurements from a list of records (usually from a decoded json string)
 
 
         Args: 
             fileSource: location of the configuration json file to load
             fileHandler: an optional filehandler to use
+            genome: genome to use if its missing from measurement
+            skip: skips adding measurement to mgr
         """ 
         measurements = []
 
@@ -326,7 +328,8 @@ class MeasurementManager(object):
                             isGenes=isGene, fileHandler=fileHandler
                         )
                         measurements.append(tempFileM)
-                        self.measurements.append(tempFileM)
+                        if not skip:
+                            self.measurements.append(tempFileM)
             elif rec.get("file_type").lower() in ["gwas", "bigbed", "gwas_pip"]:
                 anno = rec.get("annotation")
 
@@ -350,7 +353,8 @@ class MeasurementManager(object):
                             isGenes=isGene, fileHandler=fileHandler
                         )
                 measurements.append(tempFileM)
-                self.measurements.append(tempFileM)
+                if not skip:
+                    self.measurements.append(tempFileM)
             else:
                 anno = rec.get("annotation")
 
@@ -364,7 +368,8 @@ class MeasurementManager(object):
                             isGenes=isGene, fileHandler=fileHandler
                         )
                 measurements.append(tempFileM)
-                self.measurements.append(tempFileM)
+                if not skip:
+                    self.measurements.append(tempFileM)
         
         return(measurements)
 
@@ -388,7 +393,7 @@ class MeasurementManager(object):
         rec['id'] = rec.get('measurement_id')
         del rec['measurement_id']
 
-        ms = self.import_records([rec], fileHandler=self.emd_fileHandler)
+        ms = self.import_records([rec], fileHandler=self.emd_fileHandler, skip=True)
 
         return ms[0]
 
