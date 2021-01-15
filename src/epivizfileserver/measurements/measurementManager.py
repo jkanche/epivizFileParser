@@ -368,6 +368,47 @@ class MeasurementManager(object):
         
         return(measurements)
 
+    def get_ms_from_emd(self, mid):
+        """
+        grabs the measurement from emd by id
+        """
+        req_url = self.emd_endpoint + f"/ms/{mid}"
+
+        print("req_url ", req_url)
+
+        r = requests.get(req_url, verify=False)
+        if r.status_code != 200:
+            raise Exception("Error getting measurements {}: {}".format(mid, r.text))
+
+        ms = r.json()
+
+        return self.format_ms(ms)
+
+    def format_ms(self, rec):
+        rec['id'] = rec.get('measurement_id')
+        del rec['measurement_id']
+
+        ms = self.import_records([rec], fileHandler=self.emd_fileHandler)
+
+        return ms[0]
+
+        # isGene = False
+        # if "annotation" in rec["datatype"]:
+        #     isGene = True
+
+        # anno = rec.get("annotation")
+
+        # if anno is None:
+        #     anno = {}
+
+        # return FileMeasurement(rec.get("file_type"), rec.get("id"), rec.get("name"), 
+        #     rec.get("url"), genome=rec.get("genome"), annotation=anno,
+        #     metadata=rec.get("metadata"), minValue=0, maxValue=5,
+        #     isGenes=isGene, fileHandler=self.emd_fileHandler
+        # )
+
+        # return rec
+
     def import_ahub(self, ahub, handler=None):
         """Import measurements from annotationHub objects. 
 
@@ -461,11 +502,11 @@ class MeasurementManager(object):
             handler: an optional filehandler to use
             listen: activate 'updateCollections' endpoint to add measurements from the service upon request
         """
-        if listen:
-            self.emd_endpoint = url
+        self.emd_endpoint = url
+        self.emd_fileHandler = fileHandler
 
-        records = self.get_from_emd(url)
-        self.import_records(records, fileHandler=fileHandler)
+        # records = self.get_from_emd(url)
+        # self.import_records(records, fileHandler=fileHandler)
 
     def add_computed_measurement(self, mtype, mid, name, measurements, computeFunc, genome=None, annotation=None, metadata=None, computeAxis=1):
         """Add a Computed Measurement
@@ -510,7 +551,7 @@ class MeasurementManager(object):
             self.measurements.append(tempGenomeM)
         elif type == "efs-tsv":
             gurl = url
-            tempGenomeM = FileMeasurement("gtfparsed", genome + ".genes", genome + ".genes", 
+            tempGenomeM = FileMeasurement("gtfparsed", genome, genome, 
                             gurl, genome=genome, annotation={"group": "genome"},
                             metadata=["geneid", "exons_start", "exons_end", "gene"], minValue=0, maxValue=5,
                             isGenes=isGene, fileHandler=fileHandler, columns=["chr", "start", "end", "width", "strand", "geneid", "exon_starts", "exon_ends", "gene"]
@@ -522,7 +563,7 @@ class MeasurementManager(object):
         elif type == "efs-dir":
             genome_url = url + "/genes.tsv.gz"
             print("Genome " + genome_url)
-            tempGenomeM = FileMeasurement("gtfparsed",  genome + ".genes", genome + ".genes", 
+            tempGenomeM = FileMeasurement("gtfparsed",  genome, genome, 
                             genome_url, genome=genome, annotation={"group": "genome", "collection": "genome"},
                             metadata=["geneid", "exons_start", "exons_end", "gene"], minValue=0, maxValue=5,
                             isGenes=isGene, fileHandler=fileHandler, columns=["chr", "start", "end", "width", "strand", "geneid", "exon_starts", "exon_ends", "gene"]
@@ -563,12 +604,19 @@ class MeasurementManager(object):
             logging.debug("Getting mesurements. Cur ms {}".format(list(self.measurements.get_mids())))
             new_records = self.emd_map.sync(self.measurements)
             self.import_records(new_records, fileHandler = self.emd_map.handler)
+            
         return self.measurements.get_measurements()
 
     def get_measurement(self, ms_id):
         """Get a specific measurement
         """
-        return self.measurements.get(ms_id)
+        if self.measurements.get(ms_id) is not None:
+            return self.measurements.get(ms_id)
+        elif self.emd_endpoint is not None and "::" in ms_id:
+            return self.get_ms_from_emd(ms_id)
+
+        return None
+        # return self.measurements.get(ms_id)
 
     def get_genomes(self):
         """Get all available genomes
