@@ -193,9 +193,9 @@ class DataRequest(EpivizRequest):
 
         try:
             if self.params.get("datasource") in genomes:
-                file = genomes[self.params.get("datasource")]
+                rec = genomes[self.params.get("datasource")]
                 start = time.time()
-                result, err = await file.get_data(self.params.get("seqName"), 
+                result, err = await rec.get_data(self.params.get("seqName"), 
                                     int(self.params.get("start")), 
                                     int(self.params.get("end")))
 
