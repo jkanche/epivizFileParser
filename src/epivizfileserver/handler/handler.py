@@ -160,7 +160,7 @@ class FileHandlerProcess(object):
             return await self.get_file_object(fileName, fileType)   
         return fileObj
 
-    @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlefile")
+    # @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlefile")
     async def handleFile(self, fileName, fileType, chr, start, end, bins = 2000):
         """submit tasks to the dask client
 
@@ -186,7 +186,7 @@ class FileHandlerProcess(object):
                 del self.records[fileName]
             return await self.handleFile(fileName, fileType, chr, start, end, bins=bin)
 
-    @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlesearch")
+    # @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="handlesearch")
     async def handleSearch(self, fileName, fileType, query, maxResults):
         """submit tasks to the dask client
 
@@ -208,7 +208,7 @@ class FileHandlerProcess(object):
             data, err = await fileObj.search_gene(query, maxResults)
         return data, err
 
-    @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="binfile")
+    # @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="binfile")
     async def binFileData(self, fileName, fileType, data, chr, start, end, bins, columns, metadata):
         """submit tasks to the dask client
         """

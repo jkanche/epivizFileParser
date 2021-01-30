@@ -323,7 +323,7 @@ class FileMeasurement(Measurement):
         from ..parser.utils import create_parser_object as cpo
         return cpo(type, name, columns)
 
-    @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="filesearchgene")
+    # @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="filesearchgene")
     async def search_gene(self, query, maxResults):
         """Get data for a genomic region from file
 
@@ -351,7 +351,7 @@ class FileMeasurement(Measurement):
             logging.error("File Measurement: %s\t%s\t%s" %(self.mid, self.name, "file_gene_search"), exc_info=True)
             return {}, str(e)
 
-    @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="filegetdata")
+    # @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="filegetdata")
     async def get_data(self, chr, start, end, bins, bin=True):
         """Get data for a genomic region from file
 
@@ -454,7 +454,7 @@ class ComputedMeasurement(Measurement):
             return computeFunc(rowVals)
         return computeApply
 
-    @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="computedgetdata")
+    # @cached(ttl=None, cache=Cache.MEMORY, serializer=PickleSerializer(), namespace="computedgetdata")
     async def get_data(self, chr, start, end, bins, dropna=True):
         """Get data for a genomic region from files and apply the `computeFunc` function 
 
