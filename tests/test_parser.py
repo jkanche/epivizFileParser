@@ -3,8 +3,8 @@
 
 import pytest
 #from epivizfileserver import parser
-from efs_parser.BigBed import BigBed
-from efs_parser.BigWig import BigWig
+from epivizFileParser.BigBed import BigBed
+from epivizFileParser.BigWig import BigWig
 import sys
 import os
 

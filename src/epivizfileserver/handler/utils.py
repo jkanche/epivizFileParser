@@ -1,5 +1,5 @@
 #from ..parser import BigBed, BigWig, SamFile, TbxFile, TranscriptTbxFile, BamFile, GtfFile, GtfParsedFile, GWASBigBedPval, GWASBigBedPIP, TileDB, InteractionBigBed
-from efs_parser import BigBed, BigWig, SamFile, TbxFile, TranscriptTbxFile, BamFile, GtfFile, GtfParsedFile, GWASBigBedPval, GWASBigBedPIP, TileDB, InteractionBigBed
+from epivizFileParser import BigBed, BigWig, SamFile, TbxFile, TranscriptTbxFile, BamFile, GtfFile, GtfParsedFile, GWASBigBedPval, GWASBigBedPIP, TileDB, InteractionBigBed
 def create_parser_object(format, source):
     """
     Create appropriate File class based on file format

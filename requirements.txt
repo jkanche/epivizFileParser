@@ -16,4 +16,3 @@ pytest
 umsgpack
 ujson
 tiledb
-git+https://github.com/epiviz/efs_parser.git
