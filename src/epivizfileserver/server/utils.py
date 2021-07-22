@@ -1,4 +1,5 @@
-from ..parser import BigBed, BigWig
+#from ..parser import BigBed, BigWig
+from efs_parser import BigBed, BigWig
 import pandas
 import ujson
 
