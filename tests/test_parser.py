@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-#from epivizfileserver import parser
 from epivizFileParser.BigBed import BigBed
 from epivizFileParser.BigWig import BigWig
 import sys

@@ -3,7 +3,6 @@ from aiocache.serializers import JsonSerializer
 import pandas as pd
 from .measurementClass import DbMeasurement, FileMeasurement, ComputedMeasurement
 from ..trackhub import TrackHub
-#from ..parser import GtfParsedFile, TbxFile, BigBed
 from epivizFileParser import GtfParsedFile, TbxFile, BigBed
 import ujson
 import requests

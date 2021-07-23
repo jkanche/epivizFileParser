@@ -1,4 +1,3 @@
-#from ..parser import BigBed, BigWig
 from epivizFileParser import BigBed, BigWig
 import pandas
 import ujson
